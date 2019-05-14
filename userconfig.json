@@ -1,0 +1,77 @@
+{
+	"default": [{
+			"type": "wd",
+			"info": "330~020",
+			"code": "red"
+		}, {
+			"type": "ws",
+			"info": "10~17",
+			"code": "yellow"
+		},
+		{
+			"type": "ws",
+			"info": "17~",
+			"code": "red"
+		},
+		{
+			"type": "gust",
+			"info": "17~",
+			"code": "red"
+		}, {
+			"type": "gust",
+			"info": "10~17",
+			"code": "yellow"
+		},
+		{
+			"type": "vis",
+			"info": "0~800",
+			"code": "red"
+		},
+		{
+			"type": "vis",
+			"info": "800~1600",
+			"code": "yellow"
+		},
+		{
+			"type": "rvr",
+			"info": "0~550",
+			"code": "red"
+		},
+		{
+			"type": "rvr",
+			"info": "550~",
+			"code": "yellow"
+		},
+		{
+			"type": "weather",
+			"info": [
+				"\\+",
+				"TS",
+				"GR",
+				"SQ",
+				"FZ",
+				"FG",
+				"VA",
+				"SS",
+				"DS",
+				"RA-night",
+				"SN"
+			],
+			"code": "red"
+		},
+		{
+			"type": "weather",
+			"info": ["RA-day", "GS", "PL", "SG", "IC", "\\-SN"],
+			"code": "yellow"
+		}, {
+			"type": "cloud",
+			"info": "001~003",
+			"code": "red"
+		}, {
+			"type": "cloud",
+			"info": "003~006",
+			"code": "yellow"
+		}
+	],
+	"ZGSZf": {}
+}
