@@ -1,5 +1,5 @@
 const apTaf =
-	"TAF VHHH 231100Z 2312/2418 12010KT 8000 FEW012 SCT030 TX29/2406Z TN25/2322Z TEMPO 2313/2317 3500 SHRA FEW012CB SCT025 TEMPO 2317/2322 2500 TSRA SHRA FEW010 SCT020CB BKN040 TEMPO 2322/2406 3500 SHRA FEW012CB SCT025 TEMPO 2412/2418 3500 SHRA FEW012CB SCT025";
+	"TAF VMMC 231100Z 2312/2418 11010KT 8000 FEW010 SCT020 TEMPO 2312/2321 3500 SHRA FEW006 SCT015CB TEMPO 2321/2403 VRB18G28KT 2000 +TSRA FEW006 SCT012CB BKN040 TEMPO 2403/2412 3500 SHRA FEW006 SCT015CB=";
 // let apTaf =
 // 	"TAF ZGSZ 230423Z 230615 04004MPS 5000 BR SCT015 OVC030 TX19/06Z TN17/15Z TEMPO 1014 33008G17MPS 0800 SHRA VV001 FEW020CB BKN030=";
 // 
@@ -64,16 +64,23 @@ function decodeReport(report) {
 					n++;
 				}
 				n = findindex(raw, 'tx');
-				while (n < raw.length && elementiswhat(raw[n]) != 'trendcode') {
-					let key = elementiswhat(raw[n]);
-					if (typeof(result[0][key]) != "undefined" && result[0][key] != "")
-						result[0][key] = [result[0][key], elementdecode(key, raw[n])].join("|");
+				if (n) {
+					while (n < raw.length && elementiswhat(raw[n]) != 'trendcode') {
+						let key = elementiswhat(raw[n]);
+						if (typeof(result[0][key]) != "undefined" && result[0][key] != "")
+							result[0][key] = [result[0][key], elementdecode(key, raw[n])].join("|");
+						else
+							result[0][key] = elementdecode(key, raw[n]);
+						n++;
+					}
+				}else{
+					if(findindex(raw,'trendcode'))
+						n=findindex(raw,'trendcode');
 					else
-						result[0][key] = elementdecode(key, raw[n]);
-					n++;
+						n=raw.length;
 				}
 				//常规报文
-				let obj = report2object(raw.slice(findindex(raw, 'wind'), findindex(raw, 'tx')));
+				let obj = report2object(raw.slice(findindex(raw, 'wind'), n));
 				for (let i = 1; i < result.length; i++) {
 					for (let each in obj) {
 						result[i][each] = obj[each];
@@ -120,7 +127,7 @@ function decodeReport(report) {
 						if (endtime < starttime) endtime = endtime + 24;
 						starttime++;
 						endtime++;
-						console.log(validtime, result[starttime].currenttime, result[endtime].currenttime);
+						//console.log(validtime, result[starttime].currenttime, result[endtime].currenttime);
 						for (let j = starttime; j <= endtime; j++) {
 							for (let each in obj) {
 								result[j][symbol + each] = obj[each];
