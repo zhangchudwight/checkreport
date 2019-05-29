@@ -176,6 +176,13 @@ function elementdecode(key, code) {
 					"td": temp[1]
 				};
 			}
+		case /CAVOK/.test(key):
+			{
+				return{
+					"vis":"9999",
+					"cloud":"NSC"
+				}
+			}
 		default:
 			{
 				return code;
@@ -224,6 +231,10 @@ function elementiswhat(code) {
 		case (/R\d{2}/.test(code)):
 			{
 				return "rvr";
+			}
+		case (/CAVOK/.test(code)):
+			{
+				return "CAVOK";
 			}
 		case (/[FEWSCTBKNOVC]{3}\d{3}/.test(code) || /VV/.test(code) || /NSC/.test(code) || /\/\/\/\/\//.test(code)):
 			{
