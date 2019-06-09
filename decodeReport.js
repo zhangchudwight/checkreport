@@ -1,23 +1,24 @@
 const apTaf =
-	"TAF VMMC 231100Z 2312/2418 11010KT 8000 FEW010 SCT020 TEMPO 2312/2321 3500 SHRA FEW006 SCT015CB TEMPO 2321/2403 VRB18G28KT 2000 +TSRA FEW006 SCT012CB BKN040 TEMPO 2403/2412 3500 SHRA FEW006 SCT015CB=";
+	"TAF ZGSZ 090705Z 090918 18006MPS 8000 FEW020 TX30\/09Z TN27\/18Z=";
 // let apTaf =
 // 	"TAF ZGSZ 230423Z 230615 04004MPS 5000 BR SCT015 OVC030 TX19/06Z TN17/15Z TEMPO 1014 33008G17MPS 0800 SHRA VV001 FEW020CB BKN030=";
 // 
 const apMetar =
 	"SPECI ZGSZ 230930Z AUTO 08005MPS 040V110 8000 -SHRA FEW015 FEW020CB BKN040 26/24 Q1008 RESHRA BECMG FM0940 TL1040 TSRA FG GR SCT011 FEW020CB BKN030 TEMPO 33006G12MPS 0800 +TSRA OVC002=";
 console.log(decodeReport(apTaf));
+console.log(decodeReport(apMetar));
 
 function decodeReport(report) {
 	let raw = report.replace("=", "").split(" "),
 		result,
 		n = 0;
-	if (/METAR/.test(report) || /SPECI/.test(report)) {
+	if (/METAR|SPECI/.test(report)) {
 		result = initMetar();
 	} else if (/TAF/.test(report)) {
 		result = initTaf(report);
 	}
 	switch (true) {
-		case /METAR/.test(raw[0]) || /SPECI/.test(raw[0]):
+		case /METAR|SPECI/.test(raw[0]):
 			{
 				//报头部分
 				while (n < findindex(raw, 'wind')) {
@@ -192,7 +193,7 @@ function elementdecode(key, code) {
 
 function elementiswhat(code) {
 	switch (true) {
-		case /TAF/.test(code) || /METAR/.test(code) || /SPECI/.test(code):
+		case /TAF|METAR|SPECI/.test(code):
 			{
 				return "head";
 			}
@@ -212,11 +213,11 @@ function elementiswhat(code) {
 			{
 				return "sendtime";
 			}
-		case /\d{6}/.test(code) || /\d{4}\/\d{4}/.test(code) || /AT/.test(code) || /FM/.test(code) || /TL/.test(code):
+		case /\d{6}|\d{4}\/\d{4}|FM|TL/.test(code):
 			{
 				return "validtime";
 			}
-		case /MPS/.test(code) || /KT/.test(code):
+		case /MPS|KT/.test(code):
 			{
 				return "wind";
 			}
@@ -236,7 +237,7 @@ function elementiswhat(code) {
 			{
 				return "CAVOK";
 			}
-		case (/[FEWSCTBKNOVC]{3}\d{3}/.test(code) || /VV/.test(code) || /NSC/.test(code) || /\/\/\/\/\//.test(code)):
+		case (/[FEWSCTBKNOVC]{3}\d{3}|VV|NSC|\/\/\/\/\//.test(code)):
 			{
 				return "cloud";
 			}
@@ -244,11 +245,11 @@ function elementiswhat(code) {
 			{
 				return "re";
 			}
-		case (/TX/.test(code)):
+		case (/TX\S+Z/.test(code)):
 			{
 				return "tx";
 			}
-		case (/TN/.test(code)):
+		case (/TN\S+Z/.test(code)):
 			{
 				return "tn";
 			}
@@ -256,7 +257,7 @@ function elementiswhat(code) {
 			{
 				return "metartemp";
 			}
-		case /BECMG/.test(code) || /TEMPO/.test(code) || /NOSIG/.test(code):
+		case /BECMG|TEMPO|NOSIG/.test(code):
 			{
 				return "trendcode";
 			}
