@@ -1,4 +1,25 @@
-const apTaf =
+const dict = {
+	"TAF|METAR|SPECI": "head",
+	"AUTO": "auto",
+	"AMD": "amd",
+	"COR": "cor",
+	"\\d{6}Z": "sendtime",
+	"\\d{6}|\\d{4}\\/\\d{4}|FM|TL": "validtime",
+	"MPS|KT": "wind",
+	"\\d{3}V\\d{3}": "wv",
+	"Q\\d{4}": "qnh",
+	"R\\d{2}": "rvr",
+	"CAVOK": "CAVOK",
+	"FEW|SCT|BKN|OVC|VV|/////": "cloud",
+	"RE": "re",
+	"TX\\S\+Z": "tx",
+	"TN\\S\+Z": "tn",
+	"\\d{2}\\/\\d{2}": "metartemp",
+	"BECMG|TEMPO|NOSIG": "trendcode",
+	"\\d{4}": "vis",
+};
+
+ const apTaf =
 	"TAF ZGSZ 090705Z 090918 18006MPS 8000 FEW020 TX30\/09Z TN27\/18Z=";
 // let apTaf =
 // 	"TAF ZGSZ 230423Z 230615 04004MPS 5000 BR SCT015 OVC030 TX19/06Z TN17/15Z TEMPO 1014 33008G17MPS 0800 SHRA VV001 FEW020CB BKN030=";
@@ -7,6 +28,7 @@ const apMetar =
 	"SPECI ZGSZ 230930Z AUTO 08005MPS 040V110 8000 -SHRA FEW015 FEW020CB BKN040 26/24 Q1008 RESHRA BECMG FM0940 TL1040 TSRA FG GR SCT011 FEW020CB BKN030 TEMPO 33006G12MPS 0800 +TSRA OVC002=";
 console.log(decodeReport(apTaf));
 console.log(decodeReport(apMetar));
+
 
 function decodeReport(report) {
 	let raw = report.replace("=", "").split(" "),
@@ -146,8 +168,8 @@ function report2object(elements) {
 	let result = {},
 		n = 0;
 	while (n < elements.length) {
-		let key = elementiswhat(elements[n]);
-		let element = elementdecode(key, elements[n]);
+		let key = elementiswhat(elements[n]),
+			element = elementdecode(key, elements[n]);
 		if (typeof(element) == "object") {
 			for (let each in element) {
 				result[each] = element[each];
@@ -190,84 +212,13 @@ function elementdecode(key, code) {
 			}
 	}
 }
-
 function elementiswhat(code) {
-	switch (true) {
-		case /TAF|METAR|SPECI/.test(code):
-			{
-				return "head";
-			}
-		case /AUTO/.test(code):
-			{
-				return "auto";
-			}
-		case /AMD/.test(code):
-			{
-				return "amd";
-			}
-		case /COR/.test(code):
-			{
-				return "cor";
-			}
-		case /\d{6}Z/.test(code):
-			{
-				return "sendtime";
-			}
-		case /\d{6}|\d{4}\/\d{4}|FM|TL/.test(code):
-			{
-				return "validtime";
-			}
-		case /MPS|KT/.test(code):
-			{
-				return "wind";
-			}
-		case /\d{3}V\d{3}/.test(code):
-			{
-				return "wv";
-			}
-		case (/Q/.test(code)):
-			{
-				return "qnh";
-			}
-		case (/R\d{2}/.test(code)):
-			{
-				return "rvr";
-			}
-		case (/CAVOK/.test(code)):
-			{
-				return "CAVOK";
-			}
-		case (/[FEWSCTBKNOVC]{3}\d{3}|VV|NSC|\/\/\/\/\//.test(code)):
-			{
-				return "cloud";
-			}
-		case (/RE/.test(code)):
-			{
-				return "re";
-			}
-		case (/TX\S+Z/.test(code)):
-			{
-				return "tx";
-			}
-		case (/TN\S+Z/.test(code)):
-			{
-				return "tn";
-			}
-		case (/\d{2}\/\d{2}/.test(code)):
-			{
-				return "metartemp";
-			}
-		case /BECMG|TEMPO|NOSIG/.test(code):
-			{
-				return "trendcode";
-			}
-		case /\d{4}/.test(code):
-			{
-				return "vis";
-			}
-		default:
-			return "weather";
+	for (let element in dict) {
+		if (RegExp(element).test(code)) {
+			return dict[element];
+		}
 	}
+	return 'weather';
 }
 
 function initMetar() {
