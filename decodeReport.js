@@ -18,16 +18,19 @@ const dict = {
 	"BECMG|TEMPO|NOSIG": "trendcode",
 	"\\d{4}": "vis",
 };
+//const fs=require('fs');
+// dict=JSON.parse(fs.readFileSync('decodedict.json'))
+//fs.writeFile('decodedict.json',JSON.stringify(dict));
 
- const apTaf =
-	"TAF ZGSZ 090705Z 090918 18006MPS 8000 FEW020 TX30\/09Z TN27\/18Z=";
+const apTaf =
+	"TAF AMD VHHH 120936Z 1206/1312 18010KT 8000 FEW015 SCT025 TX31/1306Z TN24/1221Z TEMPO 1209/1215 2500 -TSRA SHRA FEW010CB SCT025 TEMPO 1209/1218 09010KT TEMPO 1218/1221 3500 SHRA FEW012CB SCT025 TEMPO 1221/1303 VRB15G25KT 2500 TSRA SHRA FEW010 SCT020CB BKN040 TEMPO 1306/1312 3500 SHRA FEW012CB SCT025=";
 // let apTaf =
 // 	"TAF ZGSZ 230423Z 230615 04004MPS 5000 BR SCT015 OVC030 TX19/06Z TN17/15Z TEMPO 1014 33008G17MPS 0800 SHRA VV001 FEW020CB BKN030=";
 // 
-const apMetar =
-	"SPECI ZGSZ 230930Z AUTO 08005MPS 040V110 8000 -SHRA FEW015 FEW020CB BKN040 26/24 Q1008 RESHRA BECMG FM0940 TL1040 TSRA FG GR SCT011 FEW020CB BKN030 TEMPO 33006G12MPS 0800 +TSRA OVC002=";
+// const apMetar =
+// 	"SPECI ZGSZ 230930Z AUTO 08005MPS 040V110 8000 -SHRA FEW015 FEW020CB BKN040 26/24 Q1008 RESHRA BECMG FM0940 TL1040 TSRA FG GR SCT011 FEW020CB BKN030 TEMPO 33006G12MPS 0800 +TSRA OVC002=";
 console.log(decodeReport(apTaf));
-console.log(decodeReport(apMetar));
+//console.log(decodeReport(apMetar));
 
 
 function decodeReport(report) {
@@ -43,6 +46,7 @@ function decodeReport(report) {
 		case /METAR|SPECI/.test(raw[0]):
 			{
 				//报头部分
+				result['report'] = report;
 				while (n < findindex(raw, 'wind')) {
 					let key = elementiswhat(raw[n]);
 					if (key === "weather")
@@ -78,6 +82,7 @@ function decodeReport(report) {
 		case /TAF/.test(raw[0]):
 			{
 				//报头
+				result[0]['report'] = report;
 				while (n < findindex(raw, 'wind')) {
 					let key = elementiswhat(raw[n]);
 					if (key === "weather")
@@ -96,11 +101,12 @@ function decodeReport(report) {
 							result[0][key] = elementdecode(key, raw[n]);
 						n++;
 					}
-				}else{
-					if(findindex(raw,'trendcode'))
-						n=findindex(raw,'trendcode');
+					n = findindex(raw, 'tx');
+				} else {
+					if (findindex(raw, 'trendcode'))
+						n = findindex(raw, 'trendcode');
 					else
-						n=raw.length;
+						n = raw.length;
 				}
 				//常规报文
 				let obj = report2object(raw.slice(findindex(raw, 'wind'), n));
@@ -125,22 +131,31 @@ function decodeReport(report) {
 						let arr = raw.slice(tr[i], tr[i + 1]),
 							validtime = getTafValidTime(arr),
 							tt = getTafValidTime(report),
-							starttime, endtime;
+							starttime = 0,
+							endtime = 0;
 						obj = report2object(arr.slice(2));
 						switch (raw[tr[i]]) {
 							case "FM":
 								starttime = validtime['starttime'] - tt['starttime'];
+								if (validtime['startdate'] > tt['startdate'])
+									starttime = starttime + 24;
 								endtime = result.length - 1;
 								symbol = "";
 								break;
 							case "BECMG":
 								starttime = validtime['endtime'] - tt['starttime'];
+								if (validtime['enddate'] > tt['startdate'])
+									starttime = starttime + 24;
 								endtime = result.length - 1;
 								symbol = "";
 								break;
 							case "TEMPO":
 								starttime = validtime['starttime'] - tt['starttime'];
+								if (validtime['startdate'] > tt['startdate'])
+									starttime = starttime + 24;
 								endtime = validtime['endtime'] - tt['starttime'];
+								if (validtime['enddate'] > tt['startdate'])
+									endtime = endtime + 24;
 								symbol = "tempo";
 								break;
 							default:
@@ -201,9 +216,9 @@ function elementdecode(key, code) {
 			}
 		case /CAVOK/.test(key):
 			{
-				return{
-					"vis":"9999",
-					"cloud":"NSC"
+				return {
+					"vis": "9999",
+					"cloud": "NSC"
 				}
 			}
 		default:
@@ -212,6 +227,7 @@ function elementdecode(key, code) {
 			}
 	}
 }
+
 function elementiswhat(code) {
 	for (let element in dict) {
 		if (RegExp(element).test(code)) {
@@ -224,7 +240,7 @@ function elementiswhat(code) {
 function initMetar() {
 	let result = {},
 		metaritems = ["head", "cor", "sendtime", "auto", "wd", "wv", "ws", "gust", "vis", "rvr", "weather", "cloud",
-			"t", "td", "airport",
+			"t", "td", "airport", "report",
 			"qnh", "re"
 		];
 	// 	"trendcode", "trwd", "trws", "trgust", "trvis", "trweather", "trcloud"
@@ -246,7 +262,7 @@ function initTrend() {
 }
 
 function initTaf(apTaf) {
-	let tafheads = ["head", "amd", "cor", "airport", "sendtime", "validtime", "tx", "tn"],
+	let tafheads = ["head", "amd", "cor", "airport", "sendtime", "validtime", "tx", "tn", "report"],
 		tafitems = ["wd", "ws", "gust", "vis", "weather", "cloud", "tempowd", "tempows", "tempogust", "tempovis",
 			"tempoweather", "tempocloud"
 		],
@@ -277,19 +293,27 @@ function getTafValidTime(taf) {
 	if (/ \d{6} /.test(taf)) {
 		let time = / \d{6} /.exec(taf)[0].replace(' ', '');
 		result.starttime = Number(time.substr(2, 2));
+		result.startdate = Number(time.substr(0, 2));
 		result.endtime = Number(time.substr(4, 2));
+		result.enddate = 0;
 	} else if (/\d{4}\/\d{4}/.test(taf)) {
 		let time = /\d{4}\/\d{4}/.exec(taf)[0];
 		result.starttime = Number(time.substr(2, 2));
+		result.startdate = Number(time.substr(0, 2));
 		result.endtime = Number(time.substr(7, 2));
+		result.enddate = Number(time.substr(5, 2));
 	} else if (/\d{4}/.test(taf)) {
 		let time = /\d{4}/.exec(taf)[0];
 		result.starttime = Number(time.substr(0, 2));
+		result.startdate = 0;
 		result.endtime = Number(time.substr(2, 2));
+		result.enddate = 0;
 	} else if (/\d{6}/.test(taf)) {
 		let time = /\d{6}/.exec(taf)[0];
 		result.starttime = Number(time.substr(2, 2));
+		result.startdate = Number(time.substr(0, 2));
 		result.endtime = 25;
+		result.enddate = 0;
 	} else {
 		result = false;
 	}
